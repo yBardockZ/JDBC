@@ -3,22 +3,22 @@ package application;
 import java.util.List;
 
 import model.dao.DaoFactory;
-import model.dao.impl.DepartmentDaoJDBC;
-import model.entities.Department;
+import model.dao.SellerDAO;
+import model.entities.Seller;
 
 public class Program {
 
 	public static void main(String[] args) {
 		
-		DepartmentDaoJDBC dep = (DepartmentDaoJDBC) DaoFactory.createDepartmentDAO();
+		SellerDAO sel = DaoFactory.createSellerDAO();
 		
-		Department department = dep.findById(2);
-		List<Department> list = dep.findAll();
-		dep.update(new Department(10, "Programmers"));
+		List<Seller> list = sel.findAll();
 		
-		System.out.println("Find by id: " + department);
-		System.out.println("Find all: ");
 		list.forEach(System.out::println);
+		
+		
+		
+		
 		
 		
 	}

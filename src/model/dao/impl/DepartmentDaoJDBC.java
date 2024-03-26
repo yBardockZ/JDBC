@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import db.DB;
 import db.DbIntegrityException;
 import model.dao.DepartmentDAO;
 import model.entities.Department;
@@ -23,16 +24,18 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 
 	@Override
 	public void insert(Department department) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
 		try {
-			
-			PreparedStatement ps = conn.prepareStatement("INSERT INTO department (name) VALUES (?);", Statement.RETURN_GENERATED_KEYS);
+			ps = conn.prepareStatement("INSERT INTO department (name) VALUES (?);", Statement.RETURN_GENERATED_KEYS);
 			
 			ps.setString(1, department.getName());
 			
 			int rowsAffected = ps.executeUpdate();
 			
 			if (rowsAffected > 0) {
-				ResultSet rs = ps.getGeneratedKeys();
+				rs = ps.getGeneratedKeys();
 				rs.first();
 				System.out.println("Done!, rowsAffected : " + rowsAffected + ", Generated key: " + rs.getInt(1));
 			}
@@ -43,6 +46,9 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
+		} finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
 		}
 		
 		
@@ -50,11 +56,13 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 
 	@Override
 	public void update(Department department) {
+		PreparedStatement ps = null;
+		
 		try {
 			
 			conn.setAutoCommit(false);
 			
-			PreparedStatement ps = conn.prepareStatement("UPDATE department"
+			ps = conn.prepareStatement("UPDATE department"
 					+ " SET id = ?, name = ?"
 					+ " WHERE id = ?;");
 			
@@ -85,15 +93,19 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
+		} finally {
+			DB.closeStatement(ps);
 		}
 		
 	}
 
 	@Override
 	public void deleteById(Integer id) {
+		PreparedStatement ps = null;
+		
 		try {
 			
-		PreparedStatement ps = conn.prepareStatement("DELETE FROM department WHERE id = ?;");
+		ps = conn.prepareStatement("DELETE FROM department WHERE id = ?;");
 		
 		ps.setInt(1, id);
 		
@@ -110,20 +122,25 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 			
+		} finally {
+			DB.closeStatement(ps);
 		}
 	}
 
 	@Override
 	public Department findById(Integer id) {
+		
 		Department department = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 		
 		try {
 			
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM department WHERE id = ?;");
+			ps = conn.prepareStatement("SELECT * FROM department WHERE id = ?;");
 			
 			ps.setInt(1, id);
 			
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			
 			if (rs.next()) {
 				department = new Department(rs.getInt("id"), rs.getString("name"));
@@ -139,6 +156,9 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 			throw new DbIntegrityException(e.getMessage());
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
 		}
 		
 		return department;
@@ -149,12 +169,14 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 	public List<Department> findAll() {
 		
 		List<Department> list = new ArrayList<>();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 		
 		try {
 			
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM department;");
+			ps = conn.prepareStatement("SELECT * FROM department;");
 			
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			
 			if (!rs.next()) {
 	            throw new DbIntegrityException("No elements in the query");
@@ -169,6 +191,9 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 		} catch (Exception e) {
 			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
+		} finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
 		}
 		return list;
 	}
