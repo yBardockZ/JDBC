@@ -12,6 +12,7 @@ public class Seller implements Serializable {
 	private String name;
 	private String email;
 	private LocalDate birthDate;
+
 	private Double baseSalary;
 	
 	private Department department;
@@ -76,9 +77,16 @@ public class Seller implements Serializable {
 		return id;
 	}
 
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
 	public LocalDate getBirthDate() {
 		return birthDate;
+	}
+	
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 	
 	@Override

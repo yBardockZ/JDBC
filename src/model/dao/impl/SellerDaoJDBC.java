@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbIntegrityException;
@@ -178,10 +180,7 @@ public class SellerDaoJDBC implements SellerDAO {
 		
 		try {
 			
-			ps = conn.prepareStatement("SELECT s.*, d.name AS DEPARTMENT"
-					+ " FROM seller s"
-					+ " INNER JOIN department d"
-					+ "	ON s.iddepartment = d.id;");
+			ps = conn.prepareStatement("SELECT * FROM seller_department");
 			
 			ResultSet rs = ps.executeQuery();
 			
@@ -189,10 +188,17 @@ public class SellerDaoJDBC implements SellerDAO {
 				throw new DbIntegrityException("No elements in database.");
 			}
 			
+			Map<Integer, Department> map = new HashMap<>();
+			
 			do {
-				list.add(new Seller(rs.getInt("id"), rs.getString("name"), rs.getString("email"),
-						rs.getDate("birthdate").toLocalDate(), rs.getDouble("basesalary"), 
-						new Department(rs.findColumn("iddepartment"), rs.getString(7))));
+				Department dep = map.get(rs.getInt("iddepartment"));
+				
+				if (dep == null) {
+					dep = instanciateDepartment(rs);
+					map.put(rs.getInt("iddepartment"), dep);
+				}
+
+				list.add(instanciateSeller(rs, dep));
 			} while (rs.next());
 			
 		} catch (SQLException e) {
@@ -203,6 +209,85 @@ public class SellerDaoJDBC implements SellerDAO {
 			DB.closeStatement(ps);
 		}
 		return list;
+	}
+	
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		
+		List<Seller> list = new ArrayList<>();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			
+			ps = conn.prepareStatement("SELECT * FROM seller_department"
+					+ " WHERE iddepartment = ?;");
+			
+			ps.setInt(1, department.getId());
+			
+			rs = ps.executeQuery();
+			
+			Map<Integer, Department> map = new HashMap<>();
+			
+			while (rs.next()) {
+				
+				Department dep = map.get(rs.getInt("iddepartment"));
+				
+				if (dep == null) {
+					dep = instanciateDepartment(rs);
+					map.put(rs.getInt("iddepartment"), dep);
+				}
+				
+				
+				list.add(instanciateSeller(rs, department));
+			}
+			
+			
+			
+		} catch (SQLException e) {
+			throw new DbIntegrityException(e.getMessage());
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
+		} finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(ps);
+		}
+		
+		return list;
+	
+	}
+	
+	private Seller instanciateSeller(ResultSet rs, Department department) {
+		Seller seller = new Seller();
+		try {
+			
+			seller.setId(rs.getInt("id"));
+			seller.setName(rs.getString("name"));
+			seller.setEmail(rs.getString("email"));
+			seller.setBirthDate(rs.getDate("birthdate").toLocalDate());
+			seller.setBaseSalary(rs.getDouble("basesalary"));
+			seller.setDepartment(instanciateDepartment(rs));
+			
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		
+		return seller;
+	}
+	
+	private Department instanciateDepartment(ResultSet rs) {
+		Department department = new Department();
+		try {
+			
+			department.setId(rs.getInt("iddepartment"));
+			department.setName(rs.getString("department"));
+			
+		} catch (SQLException e) {
+			throw new DbIntegrityException(e.getMessage());
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return department;
 	}
 	
 }

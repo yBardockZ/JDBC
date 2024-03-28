@@ -59,26 +59,32 @@ public class DB {
 	}
 	
 	public static void closeStatement(Statement statement) {
-		try {
-			statement.close();
+		if (statement != null) {
+			try {
+				statement.close();
 			
-		} catch (SQLException e) {
-			throw new DBException(e.getMessage());
-		} catch (Exception e) {
-			System.out.println("Error: " + e.getMessage());
-			e.printStackTrace();
+			} catch (SQLException e) {
+				throw new DBException(e.getMessage());
+			} catch (Exception e) {
+				System.out.println("Error: " + e.getMessage());
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	public static void closeResultSet(ResultSet resultSet) {
-		try {
-			resultSet.close();
+		if (resultSet != null) {
+			try {
+				resultSet.close();
+				
+			} catch (SQLException e) {
+				throw new DBException(e.getMessage());
+			} catch (Exception e) {
+				System.out.println("Error: " + e.getMessage());
+			}
 			
-		} catch (SQLException e) {
-			throw new DBException(e.getMessage());
-		} catch (Exception e) {
-			System.out.println("Error: " + e.getMessage());
 		}
+		
 	}
 
 }
